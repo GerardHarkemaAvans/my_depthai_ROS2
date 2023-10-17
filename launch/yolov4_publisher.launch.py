@@ -24,6 +24,7 @@ def generate_launch_description():
     base_frame   = LaunchConfiguration('base_frame',    default = 'oak-d_frame')
     parent_frame = LaunchConfiguration('parent_frame',  default = 'oak-d-base-frame')
     spatial_camera = LaunchConfiguration('spatial_camera',  default = True)
+    print(spatial_camera)
 
     cam_pos_x = LaunchConfiguration('cam_pos_x',     default = '0.0')
     cam_pos_y = LaunchConfiguration('cam_pos_y',     default = '0.0')
@@ -186,6 +187,6 @@ def generate_launch_description():
         ld.add_action(declare_lrCheckTresh_cmd)
         ld.add_action(declare_monoResolution_cmd)
     ld.add_action(yolov4_spatial_node)
-
+    ld.add_action(rviz_node)
     return ld
 

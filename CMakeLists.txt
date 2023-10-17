@@ -113,17 +113,17 @@ endmacro()
 #dai_add_node_ros2(stereo_inertial_node src/stereo_inertial_publisher.cpp)
 #dai_add_node_ros2(feature_tracker src/feature_tracker_publisher.cpp)
 #dai_add_node_ros2(stereo_node src/stereo_publisher.cpp)
-#dai_add_node_ros2(yolov4_spatial_node src/yolov4_spatial_publisher.cpp)
+dai_add_node_ros2(yolov4_spatial_node src/yolov4_spatial_publisher.cpp)
 
 #dai_add_node_ros2_4(stereo_inertial_nn_node src/stereo_inertial_nn_publisher.cpp src/processing.cpp src/pipe.cpp src/SpatialDetectionConverterEx.cpp)
-dai_add_node_ros2(stereo_inertial_nn_node src/stereo_inertial_nn_publisher.cpp)
+#dai_add_node_ros2(stereo_inertial_nn_node src/processing.cpp)
 
 
 #target_compile_definitions(mobilenet_node PRIVATE BLOB_NAME="${mobilenet_blob_name}")
-#target_compile_definitions(yolov4_spatial_node PRIVATE BLOB_NAME="${tiny_yolo_v4_blob_name}")
+target_compile_definitions(yolov4_spatial_node PRIVATE BLOB_NAME="${tiny_yolo_v4_blob_name}")
 #target_compile_definitions(stereo_inertial_node PRIVATE BLOB_NAME="${tiny_yolo_v4_blob_name}")
 
-target_compile_definitions(stereo_inertial_nn_node PRIVATE BLOB_NAME="${tiny_yolo_v4_blob_name}")
+#target_compile_definitions(stereo_inertial_nn_node PRIVATE BLOB_NAME="${tiny_yolo_v4_blob_name}")
 
 
 if($ENV{ROS_DISTRO} STREQUAL "galactic")
@@ -134,11 +134,11 @@ endif()
 install(DIRECTORY params DESTINATION share/${PROJECT_NAME})
 install(DIRECTORY rviz DESTINATION share/${PROJECT_NAME})
 install(DIRECTORY resources DESTINATION share/${PROJECT_NAME})
-install(DIRECTORY launch/ DESTINATION share/${PROJECT_NAME}/launch
-FILES_MATCHING PATTERN "*.py")
+install(DIRECTORY launch/ DESTINATION share/${PROJECT_NAME}/launch)
+#FILES_MATCHING PATTERN "*.py")
 
 install(TARGETS
-        stereo_inertial_nn_node
+        #stereo_inertial_nn_node
         DESTINATION lib/${PROJECT_NAME})
 
 ament_package()
