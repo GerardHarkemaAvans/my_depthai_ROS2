@@ -46,6 +46,7 @@ file(DOWNLOAD
   TLS_VERIFY ON)
 
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 
 message(STATUS "------------------------------------------")
 message(STATUS "Depthai Bridge is being built using AMENT.")
@@ -61,6 +62,9 @@ find_package(sensor_msgs REQUIRED)
 find_package(stereo_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(vision_msgs REQUIRED)
+
+find_package(rclpy REQUIRED)
+
 
 set(dependencies
   camera_info_manager
@@ -80,18 +84,6 @@ include_directories(
 )
 
 
-macro(dai_add_node_ros2_4 node_name node_src1 node_src2 node_src3 node_src4)
-  add_executable("${node_name}" "${node_src1}" "${node_src2}" "${node_src3}" "${node_src4}")
-
-  target_link_libraries("${node_name}"
-                        depthai::core
-                        opencv_imgproc
-                        opencv_highgui)
-
-  ament_target_dependencies("${node_name}"
-                            ${dependencies})
-
-endmacro()
 
 macro(dai_add_node_ros2 node_name node_src1)
   add_executable("${node_name}" "${node_src1}")
@@ -99,7 +91,8 @@ macro(dai_add_node_ros2 node_name node_src1)
   target_link_libraries("${node_name}"
                         depthai::core
                         opencv_imgproc
-                        opencv_highgui)
+                        opencv_highgui
+                        jsoncpp)
 
   ament_target_dependencies("${node_name}"
                             ${dependencies})
@@ -107,23 +100,11 @@ macro(dai_add_node_ros2 node_name node_src1)
 endmacro()
 
 
-#dai_add_node_ros2(crop_control_service src/crop_control_service.cpp)
-#dai_add_node_ros2(mobilenet_node src/mobilenet_publisher.cpp)
-#dai_add_node_ros2(rgb_stereo_node src/rgb_stereo_node.cpp)
-#dai_add_node_ros2(stereo_inertial_node src/stereo_inertial_publisher.cpp)
-#dai_add_node_ros2(feature_tracker src/feature_tracker_publisher.cpp)
-#dai_add_node_ros2(stereo_node src/stereo_publisher.cpp)
+
 dai_add_node_ros2(yolov4_spatial_node src/yolov4_spatial_publisher.cpp)
-
-#dai_add_node_ros2_4(stereo_inertial_nn_node src/stereo_inertial_nn_publisher.cpp src/processing.cpp src/pipe.cpp src/SpatialDetectionConverterEx.cpp)
-#dai_add_node_ros2(stereo_inertial_nn_node src/processing.cpp)
-
-
-#target_compile_definitions(mobilenet_node PRIVATE BLOB_NAME="${mobilenet_blob_name}")
+dai_add_node_ros2(stereo_node src/stereo_publisher.cpp)
 target_compile_definitions(yolov4_spatial_node PRIVATE BLOB_NAME="${tiny_yolo_v4_blob_name}")
-#target_compile_definitions(stereo_inertial_node PRIVATE BLOB_NAME="${tiny_yolo_v4_blob_name}")
 
-#target_compile_definitions(stereo_inertial_nn_node PRIVATE BLOB_NAME="${tiny_yolo_v4_blob_name}")
 
 
 if($ENV{ROS_DISTRO} STREQUAL "galactic")
@@ -135,11 +116,24 @@ install(DIRECTORY params DESTINATION share/${PROJECT_NAME})
 install(DIRECTORY rviz DESTINATION share/${PROJECT_NAME})
 install(DIRECTORY resources DESTINATION share/${PROJECT_NAME})
 install(DIRECTORY launch/ DESTINATION share/${PROJECT_NAME}/launch)
+# Install Python modules
+#ament_python_install_package(${PROJECT_NAME})
+#install(DIRECTORY scripts/ DESTINATION share/${PROJECT_NAME}/scripts)
 #FILES_MATCHING PATTERN "*.py")
 
 install(TARGETS
-        #stereo_inertial_nn_node
+        yolov4_spatial_node
+        stereo_node
         DESTINATION lib/${PROJECT_NAME})
+
+
+
+install(PROGRAMS
+        scripts/publisch_bouding_boxes.py
+        scripts/publisch_tf.py
+        scripts/publish_markers.py
+        DESTINATION lib/${PROJECT_NAME})
+
 
 ament_package()
 

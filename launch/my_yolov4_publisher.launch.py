@@ -26,9 +26,9 @@ def generate_launch_description():
     spatial_camera = LaunchConfiguration('spatial_camera',  default = True)
     print(spatial_camera)
 
-    cam_pos_x = LaunchConfiguration('cam_pos_x',     default = '0.0')
+    cam_pos_x = LaunchConfiguration('cam_pos_x',     default = '0.25')
     cam_pos_y = LaunchConfiguration('cam_pos_y',     default = '0.0')
-    cam_pos_z = LaunchConfiguration('cam_pos_z',     default = '0.0')
+    cam_pos_z = LaunchConfiguration('cam_pos_z',     default = '0.5')
     cam_roll  = LaunchConfiguration('cam_roll',      default = '0.0')
     cam_pitch = LaunchConfiguration('cam_pitch',     default = '0.0')
     cam_yaw   = LaunchConfiguration('cam_yaw',       default = '0.0')
@@ -41,6 +41,7 @@ def generate_launch_description():
     nnConfig             = LaunchConfiguration('nnConfig', default = "SimpleFruitsv1iyolov5pytorch.json")
     resourceBaseFolder = LaunchConfiguration('resourceBaseFolder', default = default_resources_path)
     confidence         = LaunchConfiguration('confidence',        default = 200)
+    lrcheck        = LaunchConfiguration('lrcheck', default = True)
     lrCheckTresh       = LaunchConfiguration('lrCheckTresh',      default = 5)
     monoResolution     = LaunchConfiguration('monoResolution',  default = '400p')
 
@@ -134,6 +135,11 @@ def generate_launch_description():
         default_value=lrCheckTresh,
         description='LR Threshold is the threshod of how much off the disparity on the l->r and r->l  ')
 
+    declare_lrcheck_cmd = DeclareLaunchArgument(
+        'lrcheck',
+        default_value=lrcheck,
+        description='The name of the camera. It can be different from the camera model and it will be used as node `namespace`.')
+    
     declare_monoResolution_cmd = DeclareLaunchArgument(
         'monoResolution',
         default_value=monoResolution,
@@ -153,7 +159,7 @@ def generate_launch_description():
                                               'cam_pitch'   : cam_pitch,
                                               'cam_yaw'     : cam_yaw}.items())
     yolov4_spatial_node = launch_ros.actions.Node(
-            package='depthai_examples', executable='yolov4_spatial_node',
+            package='my_depthai_ros2', executable='yolov4_spatial_node',
             output='screen',
             parameters=[{'tf_prefix': tf_prefix},
                         {'camera_param_uri': camera_param_uri},
@@ -162,6 +168,7 @@ def generate_launch_description():
                         {'nnConfig': nnConfig},
                         {'resourceBaseFolder': resourceBaseFolder},
                         {'monoResolution': monoResolution},
+                        {'lrcheck': lrcheck},
                         {'spatial_camera': spatial_camera}])
 
     rviz_node = launch_ros.actions.Node(
@@ -190,10 +197,11 @@ def generate_launch_description():
     ld.add_action(declare_sync_nn_cmd)
     ld.add_action(urdf_launch)
 
-    if spatial_camera == True:
-        ld.add_action(declare_subpixel_cmd)
-        ld.add_action(declare_lrCheckTresh_cmd)
-        ld.add_action(declare_monoResolution_cmd)
+
+    ld.add_action(declare_lrcheck_cmd)
+    ld.add_action(declare_subpixel_cmd)
+    ld.add_action(declare_lrCheckTresh_cmd)
+    ld.add_action(declare_monoResolution_cmd)
     ld.add_action(yolov4_spatial_node)
     ld.add_action(rviz_node)
     return ld
