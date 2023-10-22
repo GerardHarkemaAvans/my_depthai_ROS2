@@ -56,7 +56,7 @@ class PublischBoundingBoxes(Node):
 
         self.subImage = self.create_subscription(
             Image,
-            'color/image',
+            'color/image_rect',
             self.image_callback,
             10)
         self.subSpatialDetection  # prevent unused variable warning

@@ -12,8 +12,10 @@ import launch_ros.descriptions
 def generate_launch_description():
     depthai_examples_path = get_package_share_directory('my_depthai_ros2')
 
-    default_rviz = os.path.join(depthai_examples_path,
+
+    default_rviz = os.path.join(get_package_share_directory('my_depthai_ros2'),
                                 'rviz', 'pointCloud.rviz')
+    
     urdf_launch_dir = os.path.join(get_package_share_directory('depthai_descriptions'), 'launch')
     default_resources_path = os.path.join(depthai_examples_path,
                                 'resources')
@@ -37,13 +39,15 @@ def generate_launch_description():
     sync_nn            = LaunchConfiguration('sync_nn',           default = True)
     subpixel           = LaunchConfiguration('subpixel',          default = True)
 
-    nnName             = LaunchConfiguration('nnName', default = "SimpleFruitsv1iyolov5pytorch_openvino_2021.4_6shave.blob")
+    nnName              = LaunchConfiguration('nnName', default = "SimpleFruitsv1iyolov5pytorch_openvino_2021.4_6shave.blob")
     nnConfig             = LaunchConfiguration('nnConfig', default = "SimpleFruitsv1iyolov5pytorch.json")
-    resourceBaseFolder = LaunchConfiguration('resourceBaseFolder', default = default_resources_path)
-    confidence         = LaunchConfiguration('confidence',        default = 200)
-    lrcheck        = LaunchConfiguration('lrcheck', default = True)
-    lrCheckTresh       = LaunchConfiguration('lrCheckTresh',      default = 5)
-    monoResolution     = LaunchConfiguration('monoResolution',  default = '400p')
+    resourceBaseFolder  = LaunchConfiguration('resourceBaseFolder', default = default_resources_path)
+    confidence          = LaunchConfiguration('confidence',        default = 200)
+    lrcheck             = LaunchConfiguration('lrcheck', default = True)
+    extended            = LaunchConfiguration('extended', default = False)
+    LRchecktresh        = LaunchConfiguration('LRchecktresh',      default = 5)
+    #monoResolution     = LaunchConfiguration('monoResolution',  default = '400p')
+    monoResolution      = LaunchConfiguration('monoResolution',  default = '720p')
 
     declare_camera_model_cmd = DeclareLaunchArgument(
         'camera_model',
@@ -130,10 +134,15 @@ def generate_launch_description():
         default_value=confidence,
         description='Confidence that the disparity from the feature matching was good. 0-255. 255 being the lowest confidence.')
     
-    declare_lrCheckTresh_cmd = DeclareLaunchArgument(
-        'lrCheckTresh',
-        default_value=lrCheckTresh,
+    declare_LRchecktresh_cmd = DeclareLaunchArgument(
+        'LRchecktresh',
+        default_value=LRchecktresh,
         description='LR Threshold is the threshod of how much off the disparity on the l->r and r->l  ')
+
+    declare_extended_cmd = DeclareLaunchArgument(
+        'extended',
+        default_value=extended,
+        description='The name of the camera. It can be different from the camera model and it will be used as node `namespace`.')
 
     declare_lrcheck_cmd = DeclareLaunchArgument(
         'lrcheck',
@@ -158,18 +167,61 @@ def generate_launch_description():
                                               'cam_roll'    : cam_roll,
                                               'cam_pitch'   : cam_pitch,
                                               'cam_yaw'     : cam_yaw}.items())
+    
     yolov4_spatial_node = launch_ros.actions.Node(
             package='my_depthai_ros2', executable='yolov4_spatial_node',
             output='screen',
             parameters=[{'tf_prefix': tf_prefix},
                         {'camera_param_uri': camera_param_uri},
-                        {'sync_nn': sync_nn},
                         {'nnName': nnName},
                         {'nnConfig': nnConfig},
                         {'resourceBaseFolder': resourceBaseFolder},
+                        {'sync_nn': sync_nn},
                         {'monoResolution': monoResolution},
                         {'lrcheck': lrcheck},
+                        {'extended': extended},
+                        {'subpixel': subpixel},
+                        {'confidence': confidence},
+                        {'LRchecktresh': LRchecktresh},                        
                         {'spatial_camera': spatial_camera}])
+
+    metric_converter_node = launch_ros.actions.ComposableNodeContainer(
+            name='container',
+            namespace='',
+            package='rclcpp_components',
+            executable='component_container',
+            composable_node_descriptions=[
+                # Driver itself
+                launch_ros.descriptions.ComposableNode(
+                    package='depth_image_proc',
+                    plugin='depth_image_proc::ConvertMetricNode',
+                    name='convert_metric_node',
+                    remappings=[('image_raw', '/stereo/depth'),
+                                ('camera_info', '/stereo/camera_info'),
+                                ('image', '/stereo/converted_depth')]
+                ),
+            ],
+            output='screen',)
+
+    point_cloud_node = launch_ros.actions.ComposableNodeContainer(
+            name='container2',
+            namespace='',
+            package='rclcpp_components',
+            executable='component_container',
+            composable_node_descriptions=[
+                # Driver itself
+                launch_ros.descriptions.ComposableNode(
+                    package='depth_image_proc',
+                    plugin='depth_image_proc::PointCloudXyziNode',
+                    name='point_cloud_xyzi',
+
+                    remappings=[('depth/image_rect', '/stereo/converted_depth'),
+                                ('intensity/image_rect', '/right/image_rect'),
+                                ('intensity/camera_info', '/right/camera_info'),
+                                ('points', '/stereo/points')]
+                ),
+            ],
+            output='screen',)
 
     rviz_node = launch_ros.actions.Node(
             package='rviz2', executable='rviz2', output='screen',
@@ -197,12 +249,26 @@ def generate_launch_description():
     ld.add_action(declare_sync_nn_cmd)
     ld.add_action(urdf_launch)
 
-
     ld.add_action(declare_lrcheck_cmd)
+    ld.add_action(declare_extended_cmd)
     ld.add_action(declare_subpixel_cmd)
-    ld.add_action(declare_lrCheckTresh_cmd)
+    ld.add_action(declare_LRchecktresh_cmd)
     ld.add_action(declare_monoResolution_cmd)
+
+
+    #ld.add_action(declare_mode_cmd)
+    ld.add_action(declare_lrcheck_cmd)
+    ld.add_action(declare_extended_cmd)
+    ld.add_action(declare_subpixel_cmd)
+    ld.add_action(declare_confidence_cmd)
+    ld.add_action(declare_LRchecktresh_cmd)
+    ld.add_action(declare_monoResolution_cmd)
+
     ld.add_action(yolov4_spatial_node)
+
+    ld.add_action(metric_converter_node)
+    ld.add_action(point_cloud_node)
+
     ld.add_action(rviz_node)
     return ld
 
