@@ -14,7 +14,7 @@ def generate_launch_description():
 
 
     default_rviz = os.path.join(get_package_share_directory('my_depthai_ros2'),
-                                'rviz', 'pointCloud.rviz')
+                                'rviz', 'spatialDetections.rviz')
     
     urdf_launch_dir = os.path.join(get_package_share_directory('depthai_descriptions'), 'launch')
     default_resources_path = os.path.join(depthai_examples_path,

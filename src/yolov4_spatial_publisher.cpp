@@ -93,11 +93,8 @@ std::tuple<dai::Pipeline, int, int> createPipeline(bool lrcheck, bool extended, 
     stereoDepth->setLeftRightCheck(lrcheck);
     stereoDepth->setExtendedDisparity(extended);
     stereoDepth->setSubpixel(subpixel);
-    stereoDepth->setDepthAlign(dai::CameraBoardSocket::CAM_A); //added by gerard
-
-//stereoDepth->setExtendedDisparity(extended);;
-//stereoDepth->setDepthAlign(dai::CameraBoardSocket::RGB);
-
+    //stereoDepth->setDepthAlign(dai::CameraBoardSocket::CAM_A); //added by gerard
+    //stereoDepth->Input.setBlocking(false);
 
     {
         std::ifstream file(nnConfigPath);
