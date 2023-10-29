@@ -168,8 +168,8 @@ def generate_launch_description():
                                               'cam_pitch'   : cam_pitch,
                                               'cam_yaw'     : cam_yaw}.items())
     
-    yolov4_spatial_node = launch_ros.actions.Node(
-            package='my_depthai_ros2', executable='yolov4_spatial_node',
+    yolo_spatial_detector_node = launch_ros.actions.Node(
+            package='my_depthai_ros2', executable='yolo_spatial_detector_node',
             output='screen',
             parameters=[{'tf_prefix': tf_prefix},
                         {'camera_param_uri': camera_param_uri},
@@ -247,7 +247,7 @@ def generate_launch_description():
     ld.add_action(declare_resourceBaseFolder_cmd)
     ld.add_action(declare_confidence_cmd)
     ld.add_action(declare_sync_nn_cmd)
-    ld.add_action(urdf_launch)
+    #ld.add_action(urdf_launch)
 
     ld.add_action(declare_lrcheck_cmd)
     ld.add_action(declare_extended_cmd)
@@ -264,11 +264,11 @@ def generate_launch_description():
     ld.add_action(declare_LRchecktresh_cmd)
     ld.add_action(declare_monoResolution_cmd)
 
-    ld.add_action(yolov4_spatial_node)
+    ld.add_action(yolo_spatial_detector_node)
 
     ld.add_action(metric_converter_node)
     ld.add_action(point_cloud_node)
 
-    ld.add_action(rviz_node)
+    #ld.add_action(rviz_node)
     return ld
 
