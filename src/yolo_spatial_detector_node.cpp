@@ -108,7 +108,7 @@ std::tuple<dai::Pipeline, int, int> createPipeline(bool lrcheck,
     stereoDepth->setLeftRightCheck(lrcheck);
     stereoDepth->setExtendedDisparity(extended);
     stereoDepth->setSubpixel(subpixel);
-    //stereoDepth->setDepthAlign(dai::CameraBoardSocket::CAM_A); //added by gerard
+    stereoDepth->setDepthAlign(dai::CameraBoardSocket::CAM_A); //added by gerard
     //stereoDepth->Input.setBlocking(false);
 
     {
@@ -165,9 +165,6 @@ std::tuple<dai::Pipeline, int, int> createPipeline(bool lrcheck,
         spatialDetectionNetwork->setSpatialCalculationAlgorithm(dai::SpatialLocationCalculatorAlgorithm::MIN);
     }
 
-    //if(publish_grayscale_image){}
-    //if(publish_depth_image){}
-
 
     // Link plugins CAM -> STEREO -> XLINK
     monoLeftCam->out.link(stereoDepth->left);
@@ -200,12 +197,6 @@ std::tuple<dai::Pipeline, int, int> createPipeline(bool lrcheck,
     if(publish_depth_image){
         spatialDetectionNetwork->passthroughDepth.link(xoutDepth->input);
     }
-
-
-
-
-
-
     return std::make_tuple(pipeline, width, height);
 }
 
@@ -259,8 +250,8 @@ int main(int argc, char** argv) {
 
 
     // forse true !!! for testing
-    publish_grayscale_image = true;
-    publish_depth_image = true;
+    //publish_grayscale_image = true;
+    //publish_depth_image = true;
 
     //std::cout << resourceBaseFolder << std::endl;
 

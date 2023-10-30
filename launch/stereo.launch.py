@@ -147,7 +147,10 @@ def generate_launch_description():
                         {'monoResolution': monoResolution}])
 
 
-    metric_converter_node = launch_ros.actions.ComposableNodeContainer(
+    color_pointcloud = false
+
+    if not color_pointcloud:
+        metric_converter_node = launch_ros.actions.ComposableNodeContainer(
             name='container',
             namespace='',
             package='rclcpp_components',
@@ -164,7 +167,6 @@ def generate_launch_description():
                 ),
             ],
             output='screen',)
-    if 1:
         point_cloud_node = launch_ros.actions.ComposableNodeContainer(
                 name='container2',
                 namespace='',
@@ -185,6 +187,23 @@ def generate_launch_description():
                 ],
                 output='screen',)
     else:
+        metric_converter_node = launch_ros.actions.ComposableNodeContainer(
+            name='container',
+            namespace='',
+            package='rclcpp_components',
+            executable='component_container',
+            composable_node_descriptions=[
+                # Driver itself
+                launch_ros.descriptions.ComposableNode(
+                    package='depth_image_proc',
+                    plugin='depth_image_proc::ConvertMetricNode',
+                    name='convert_metric_node',
+                    remappings=[('image_raw', '/stereo/depth'),
+                                ('camera_info', '/stereo/camera_info'),
+                                ('image', '/stereo/converted_depth')]
+                ),
+            ],
+            output='screen',)
         point_cloud_node = launch_ros.actions.ComposableNodeContainer(
                 name='container2',
                 namespace='',
