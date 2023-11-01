@@ -147,7 +147,7 @@ def generate_launch_description():
                         {'monoResolution': monoResolution}])
 
 
-    color_pointcloud = false
+    color_pointcloud = False
 
     if not color_pointcloud:
         metric_converter_node = launch_ros.actions.ComposableNodeContainer(
