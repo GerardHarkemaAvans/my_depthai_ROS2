@@ -70,6 +70,9 @@ std::tuple<dai::Pipeline, int, int> createPipeline(bool lrcheck, bool extended, 
     monoRightCam->setResolution(monoResolution);
     monoRightCam->setBoardSocket(dai::CameraBoardSocket::CAM_C);
 
+    int rgbScaleNumerator = 2;
+    int rgbScaleDinominator = 3;
+    colorCam->setIspScale(rgbScaleNumerator, rgbScaleDinominator);
     colorCam->setPreviewSize(width, height);
     colorCam->setResolution(dai::ColorCameraProperties::SensorResolution::THE_1080_P);
     colorCam->setInterleaved(false);

@@ -34,6 +34,7 @@ def generate_launch_description():
     confidence     = LaunchConfiguration('confidence', default = 200)
     LRchecktresh   = LaunchConfiguration('LRchecktresh', default = 5)
     monoResolution = LaunchConfiguration('monoResolution',  default = '720p')
+    #monoResolution = LaunchConfiguration('monoResolution',  default = '400p')
 
     declare_camera_model_cmd = DeclareLaunchArgument(
         'camera_model',
@@ -147,26 +148,29 @@ def generate_launch_description():
                         {'monoResolution': monoResolution}])
 
 
-    color_pointcloud = False
+    metric_converter_node = launch_ros.actions.ComposableNodeContainer(
+        name='container',
+        namespace='',
+        package='rclcpp_components',
+        executable='component_container',
+        composable_node_descriptions=[
+            # Driver itself
+            launch_ros.descriptions.ComposableNode(
+                package='depth_image_proc',
+                plugin='depth_image_proc::ConvertMetricNode',
+                name='convert_metric_node',
+                remappings=[('image_raw', '/stereo/depth'),
+                            ('camera_info', '/stereo/camera_info'),
+                            ('image', '/stereo/converted_depth')]
+            ),
+        ],
+        output='screen',)
+
+    color_pointcloud = True
+
 
     if not color_pointcloud:
-        metric_converter_node = launch_ros.actions.ComposableNodeContainer(
-            name='container',
-            namespace='',
-            package='rclcpp_components',
-            executable='component_container',
-            composable_node_descriptions=[
-                # Driver itself
-                launch_ros.descriptions.ComposableNode(
-                    package='depth_image_proc',
-                    plugin='depth_image_proc::ConvertMetricNode',
-                    name='convert_metric_node',
-                    remappings=[('image_raw', '/stereo/depth'),
-                                ('camera_info', '/stereo/camera_info'),
-                                ('image', '/stereo/converted_depth')]
-                ),
-            ],
-            output='screen',)
+
         point_cloud_node = launch_ros.actions.ComposableNodeContainer(
                 name='container2',
                 namespace='',
@@ -187,23 +191,6 @@ def generate_launch_description():
                 ],
                 output='screen',)
     else:
-        metric_converter_node = launch_ros.actions.ComposableNodeContainer(
-            name='container',
-            namespace='',
-            package='rclcpp_components',
-            executable='component_container',
-            composable_node_descriptions=[
-                # Driver itself
-                launch_ros.descriptions.ComposableNode(
-                    package='depth_image_proc',
-                    plugin='depth_image_proc::ConvertMetricNode',
-                    name='convert_metric_node',
-                    remappings=[('image_raw', '/stereo/depth'),
-                                ('camera_info', '/stereo/camera_info'),
-                                ('image', '/stereo/converted_depth')]
-                ),
-            ],
-            output='screen',)
         point_cloud_node = launch_ros.actions.ComposableNodeContainer(
                 name='container2',
                 namespace='',
@@ -216,9 +203,9 @@ def generate_launch_description():
                         plugin='depth_image_proc::PointCloudXyzrgbNode',
                         name='point_cloud_xyzrgb',
 
-                        remappings=[('depth/image_rect', '/stereo/converted_depth'),
-                                    ('intensity/image_rect', '/color/image_rect'),
-                                    ('intensity/camera_info', '/color/camera_info'),
+                        remappings=[('depth_registered/image_rect', '/stereo/converted_depth'),
+                                    ('rgb/image_rect_color', '/color/image_rect'),
+                                    ('rgb/camera_info', '/color/camera_info'),
                                     ('points', '/stereo/points')]
                     ),
                 ],
