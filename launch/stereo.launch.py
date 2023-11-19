@@ -34,7 +34,7 @@ def generate_launch_description():
     confidence     = LaunchConfiguration('confidence', default = 200)
     LRchecktresh   = LaunchConfiguration('LRchecktresh', default = 5)
     monoResolution = LaunchConfiguration('monoResolution',  default = '720p')
-    #monoResolution = LaunchConfiguration('monoResolution',  default = '400p')
+
 
     declare_camera_model_cmd = DeclareLaunchArgument(
         'camera_model',

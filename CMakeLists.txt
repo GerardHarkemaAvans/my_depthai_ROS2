@@ -60,7 +60,7 @@ include_directories(
 
 
 
-macro(dai_add_node_ros2 node_name node_src1)
+macro(dai_add_node_ros1 node_name node_src1)
   add_executable("${node_name}" "${node_src1}")
 
   target_link_libraries("${node_name}"
@@ -74,10 +74,23 @@ macro(dai_add_node_ros2 node_name node_src1)
 
 endmacro()
 
+macro(dai_add_node_ros2 node_name node_src1 node_src2)
+  add_executable("${node_name}" "${node_src1}" "${node_src2}")
+
+  target_link_libraries("${node_name}"
+                        depthai::core
+                        opencv_imgproc
+                        opencv_highgui
+                        jsoncpp)
+
+  ament_target_dependencies("${node_name}"
+                            ${dependencies})
+
+endmacro()
 
 
-dai_add_node_ros2(yolo_spatial_detector_node src/yolo_spatial_detector_node.cpp)
-dai_add_node_ros2(stereo_node src/stereo_publisher.cpp)
+dai_add_node_ros2(yolo_spatial_detector_node src/yolo_spatial_detector_node.cpp src/SpatialDetectionConverterEx.cpp)
+dai_add_node_ros1(stereo_node src/stereo_publisher.cpp)
 
 
 if($ENV{ROS_DISTRO} STREQUAL "galactic")
