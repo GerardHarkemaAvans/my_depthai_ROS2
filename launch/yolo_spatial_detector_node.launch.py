@@ -46,7 +46,6 @@ def generate_launch_description():
     lrcheck             = LaunchConfiguration('lrcheck', default = True)
     extended            = LaunchConfiguration('extended', default = False)
     LRchecktresh        = LaunchConfiguration('LRchecktresh',      default = 5)
-    #monoResolution     = LaunchConfiguration('monoResolution',  default = '400p')
     monoResolution      = LaunchConfiguration('monoResolution',  default = '720p')
     publish_grayscale_image  = LaunchConfiguration('publish_grayscale_image', default = True)
     publish_depth_image      = LaunchConfiguration('publish_depth_image', default = True)
@@ -218,29 +217,67 @@ def generate_launch_description():
             ],
             output='screen',)
 
-    point_cloud_node = launch_ros.actions.ComposableNodeContainer(
-            name='container2',
-            namespace='',
-            package='rclcpp_components',
-            executable='component_container',
-            composable_node_descriptions=[
-                # Driver itself
-                launch_ros.descriptions.ComposableNode(
-                    package='depth_image_proc',
-                    plugin='depth_image_proc::PointCloudXyziNode',
-                    name='point_cloud_xyzi',
+    color_pointcloud = True
 
-                    remappings=[('depth/image_rect', '/stereo/converted_depth'),
-                                ('intensity/image_rect', '/right/image_rect'),
-                                ('intensity/camera_info', '/right/camera_info'),
-                                ('points', '/stereo/points')]
-                ),
-            ],
-            output='screen',)
+
+    if not color_pointcloud:
+
+        point_cloud_node = launch_ros.actions.ComposableNodeContainer(
+                name='container2',
+                namespace='',
+                package='rclcpp_components',
+                executable='component_container',
+                composable_node_descriptions=[
+                    # Driver itself
+                    launch_ros.descriptions.ComposableNode(
+                        package='depth_image_proc',
+                        plugin='depth_image_proc::PointCloudXyziNode',
+                        name='point_cloud_xyzi',
+
+                        remappings=[('depth/image_rect', '/stereo/converted_depth'),
+                                    ('intensity/image_rect', '/right/image_rect'),
+                                    ('intensity/camera_info', '/right/camera_info'),
+                                    ('points', '/stereo/points')]
+                    ),
+                ],
+                output='screen',)
+    else:
+        point_cloud_node = launch_ros.actions.ComposableNodeContainer(
+                name='container2',
+                namespace='',
+                package='rclcpp_components',
+                executable='component_container',
+                composable_node_descriptions=[
+                    # Driver itself
+                    launch_ros.descriptions.ComposableNode(
+                        package='depth_image_proc',
+                        plugin='depth_image_proc::PointCloudXyzrgbNode',
+                        name='point_cloud_xyzrgb',
+
+                        remappings=[('depth_registered/image_rect', '/stereo/converted_depth'),
+                                    ('rgb/image_rect_color', '/color/image_rect'),
+                                    ('rgb/camera_info', '/color/camera_info'),
+                                    ('points', '/stereo/points')]
+                    ),
+                ],
+                output='screen',)
+
 
     rviz_node = launch_ros.actions.Node(
             package='rviz2', executable='rviz2', output='screen',
             arguments=['--display-config', default_rviz])
+
+    bounding_boxes_node = launch_ros.actions.Node(
+            package='my_depthai_ros2', executable='publisch_bouding_boxes.py',
+            output='screen',
+            parameters=[{'nnConfig': nnConfig},
+                        {'resourceBaseFolder': resourceBaseFolder}])
+
+    tf_node = launch_ros.actions.Node(
+            package='my_depthai_ros2', executable='publisch_tf.py',
+            output='screen',
+            parameters=[{'nnConfig': nnConfig},
+                        {'resourceBaseFolder': resourceBaseFolder}])
 
     ld = LaunchDescription()
     ld.add_action(declare_tf_prefix_cmd)
@@ -287,5 +324,7 @@ def generate_launch_description():
     ld.add_action(point_cloud_node)
 
     ld.add_action(rviz_node)
+    ld.add_action(bounding_boxes_node)
+    ld.add_action(tf_node)
     return ld
 

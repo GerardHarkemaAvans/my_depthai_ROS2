@@ -10,7 +10,7 @@
 #include "rclcpp/executors.hpp"
 #include "rclcpp/node.hpp"
 #include "sensor_msgs/msg/image.hpp"
-#include <SpatialDetectionConverterEx.hpp>
+//#include <SpatialDetectionConverterEx.hpp>
 
 
 // Inludes common necessary includes for development using depthai library
@@ -60,6 +60,10 @@ std::tuple<dai::Pipeline, int, int> createPipeline(bool lrcheck,
     auto xoutColor = pipeline.create<dai::node::XLinkOut>();
     xoutColor->setStreamName("color");
 
+    auto xoutColorDetections = pipeline.create<dai::node::XLinkOut>();
+    xoutColorDetections->setStreamName("color_detections");
+
+
     std::shared_ptr<dai::node::XLinkOut> xoutDepth(nullptr);   
     if(publish_depth_image){
         xoutDepth = pipeline.create<dai::node::XLinkOut>();
@@ -96,6 +100,12 @@ std::tuple<dai::Pipeline, int, int> createPipeline(bool lrcheck,
     monoLeftCam->setBoardSocket(dai::CameraBoardSocket::CAM_B);
     monoRightCam->setResolution(monoResolution);
     monoRightCam->setBoardSocket(dai::CameraBoardSocket::CAM_C);
+
+
+    //int rgbScaleNumerator = 2;
+    //int rgbScaleDinominator = 3;
+    //colorCam->setIspScale(rgbScaleNumerator, rgbScaleDinominator);
+    //colorCam->setPreviewSize(width, height);
 
     colorCam->setPreviewSize(416, 416);
     colorCam->setResolution(dai::ColorCameraProperties::SensorResolution::THE_1080_P);
@@ -188,7 +198,8 @@ std::tuple<dai::Pipeline, int, int> createPipeline(bool lrcheck,
     else
         colorCam->preview.link(xoutColor->input);
 #endif
-    spatialDetectionNetwork->passthrough.link(xoutColor->input);
+    spatialDetectionNetwork->passthrough.link(xoutColorDetections->input);
+    colorCam->video.link(xoutColor->input);
 
     //colorCam->preview.link(xoutColor->input);
     spatialDetectionNetwork->out.link(xoutDetections->input);
@@ -279,7 +290,7 @@ int main(int argc, char** argv) {
                                                                syncNN, 
                                                                subpixel, 
                                                                nnPath, 
-                                                               nnConfigPath, 
+                                                               nnConfigPath, //
                                                                confidence, 
                                                                LRchecktresh, 
                                                                monoResolution,
@@ -289,6 +300,7 @@ int main(int argc, char** argv) {
     dai::Device device(pipeline);
 
     auto colorQueue = device.getOutputQueue("color", 30, false);
+    auto colorDetectionsQueue = device.getOutputQueue("color_detections", 30, false);
     auto detectionQueue = device.getOutputQueue("detections", 30, false);
 
     std::shared_ptr<dai::DataOutputQueue> stereoDepthQueue(nullptr);
@@ -355,6 +367,16 @@ int main(int argc, char** argv) {
         "color");
     colorPublish.addPublisherCallback();
 
+    dai::rosBridge::BridgePublisher<sensor_msgs::msg::Image, dai::ImgFrame> colorDetectionsPublish(
+        colorDetectionsQueue,
+        node,
+        std::string("color/detections"),
+        std::bind(&dai::rosBridge::ImageConverter::toRosMsg, &color_converter, std::placeholders::_1, std::placeholders::_2),
+        30,
+        colorCameraInfo,
+        "color");
+    colorDetectionsPublish.addPublisherCallback();
+
     auto depthconverter = rightconverter;//color_converter;
     auto depthCameraInfo = rightCameraInfo;//depthconverter.calibrationToCameraInfo(calibrationHandler, dai::CameraBoardSocket::CAM_C, monoWidth, monoHeight);
     dai::rosBridge::BridgePublisher<sensor_msgs::msg::Image, dai::ImgFrame> *depthPublish;
@@ -374,12 +396,12 @@ int main(int argc, char** argv) {
         depthPublish->addPublisherCallback();
     }
 
-    dai::rosBridge::SpatialDetectionConverterEx detConverter(tfPrefix + "_rgb_camera_optical_frame", 416, 416, false);//monoWidth, monoHeight);
+    dai::rosBridge::SpatialDetectionConverter detConverter(tfPrefix + "_rgb_camera_optical_frame", 416, 416, false);//monoWidth, monoHeight);
     dai::rosBridge::BridgePublisher<depthai_ros_msgs::msg::SpatialDetectionArray, dai::SpatialImgDetections> detectionPublish(
         detectionQueue,
         node,
         std::string("color/yolov4_Spatial_detections"),
-        std::bind(&dai::rosBridge::SpatialDetectionConverterEx::toRosMsg, &detConverter, std::placeholders::_1, std::placeholders::_2),
+        std::bind(&dai::rosBridge::SpatialDetectionConverter::toRosMsg, &detConverter, std::placeholders::_1, std::placeholders::_2),
         30);
     detectionPublish.addPublisherCallback();
 

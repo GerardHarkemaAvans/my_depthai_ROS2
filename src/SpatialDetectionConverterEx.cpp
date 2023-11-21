@@ -7,10 +7,12 @@
 namespace dai {
 namespace ros {
 
-SpatialDetectionConverterEx::SpatialDetectionConverterEx(std::string frameName, int width, int height, bool normalized, bool getBaseDeviceTimestamp)
+SpatialDetectionConverterEx::SpatialDetectionConverterEx(std::string frameName, int width, int height, int nn_width, int nn_height, bool normalized, bool getBaseDeviceTimestamp)
     : _frameName(frameName),
       _width(width),
       _height(height),
+      _nn_width(nn_width),
+      _nn_height(nn_height),
       _normalized(normalized),
       _steadyBaseTime(std::chrono::steady_clock::now()),
       _getBaseDeviceTimestamp(getBaseDeviceTimestamp) {

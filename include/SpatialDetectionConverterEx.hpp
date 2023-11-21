@@ -18,7 +18,7 @@ using SpatialDetectionArrayPtr = SpatialMessages::SpatialDetectionArray::SharedP
 
 class SpatialDetectionConverterEx {
    public:
-    SpatialDetectionConverterEx(std::string frameName, int width, int height, bool normalized = false, bool getBaseDeviceTimestamp = false);
+    SpatialDetectionConverterEx(std::string frameName, int width, int height, int nn_width, int nn_height, bool normalized = false, bool getBaseDeviceTimestamp = false);
     ~SpatialDetectionConverterEx();
 
     /**
@@ -45,6 +45,7 @@ class SpatialDetectionConverterEx {
 
    private:
     int _width, _height;
+    int _nn_width, _nn_height;
     const std::string _frameName;
     bool _normalized;
     std::chrono::time_point<std::chrono::steady_clock> _steadyBaseTime;

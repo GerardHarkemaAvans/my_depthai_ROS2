@@ -56,7 +56,7 @@ class PublischBoundingBoxes(Node):
 
         self.subImage = self.create_subscription(
             Image,
-            'color/image_rect',
+            'color/detections',
             self.image_callback,
             10)
         self.subSpatialDetection  # prevent unused variable warning
@@ -90,12 +90,12 @@ class PublischBoundingBoxes(Node):
 
                     upper_left = (int(bbox.center.position.x - bbox.size_x/2),int(bbox.center.position.y - bbox.size_y/2))
                     lower_right = (int(bbox.center.position.x + bbox.size_x/2),int(bbox.center.position.y + bbox.size_y/2))
-
-                    cv2.rectangle(bouding_box_image, upper_left, lower_right, (0,0,255), 1)
+                    width = 1
+                    cv2.rectangle(bouding_box_image, upper_left, lower_right, (0,0,255), width)
 
                     label_pos = (int(bbox.center.position.x - bbox.size_x/2),int(bbox.center.position.y + bbox.size_y/2 + 10))
                     
-                    cv2.putText(bouding_box_image, label, label_pos, cv2.FONT_HERSHEY_SIMPLEX,  0.5, (255, 0, 0), 1, cv2.LINE_AA) 
+                    cv2.putText(bouding_box_image, label, label_pos, cv2.FONT_HERSHEY_SIMPLEX,  0.5, (255, 0, 0), width, cv2.LINE_AA) 
 
                     number_of_bounding_boxes = number_of_bounding_boxes + 1
 
