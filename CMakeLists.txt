@@ -117,7 +117,7 @@ install(TARGETS
 install(PROGRAMS
         scripts/publisch_bouding_boxes.py
         scripts/publisch_tf.py
-        scripts/publish_markers.py
+        scripts/circle_detector.py
         DESTINATION lib/${PROJECT_NAME})
 
 
