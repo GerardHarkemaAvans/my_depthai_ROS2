@@ -19,6 +19,7 @@ from tf2_ros import TransformBroadcaster
 from geometry_msgs.msg import TransformStamped
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 
+
 class CircleDetector(Node):
 
     def __init__(self):
@@ -98,9 +99,10 @@ class CircleDetector(Node):
                         #curr_pos = pc_list[it_y][it_x] # hoe zit dit?
                         
                         xyz_data = pc_list["xyz"]
-                        print(len(xyz_data))
-                        print(xyz_data)
-                        curr_pos = xyz_data[it_y][it_x] # hoe zit dit?
+                        #print(len(xyz_data))
+                        #print(xyz_data)
+                        #curr_pos = xyz_data[it_y][it_x] # hoe zit dit?
+                        curr_pos = xyz_data[point_cloud_msg.width * it_y + it_x]
                         if curr_pos[0] is not None:
                             if(curr_pos[2] < min_z):
                                 min_x = curr_pos[0]
@@ -108,7 +110,7 @@ class CircleDetector(Node):
                                 min_z = curr_pos[2]
 
                 curr_pos = min_x, min_y, min_z
-                #rospy.loginfo(curr_pos)
+                print(curr_pos)
 
                 t = TransformStamped()
 
@@ -118,14 +120,14 @@ class CircleDetector(Node):
                 t.header.stamp = self.get_clock().now().to_msg()
                 t.header.frame_id = 'oak_model_origin' # nog even de juiste selecteren!!!!!
                 t.child_frame_id = child_frame_id
-                t.transform.translation.x = min_x
-                t.transform.translation.y = min_y
-                t.transform.translation.z = min_z
-                q = t.transformations.quaternion_from_euler(0, 0, 0) 
-                t.transform.rotation.x = q[0]
-                t.transform.rotation.y = q[1]
-                t.transform.rotation.z = q[2]
-                t.transform.rotation.w = q[3]
+                t.transform.translation.x = float(min_x)
+                t.transform.translation.y = float(min_y)
+                t.transform.translation.z = float(min_z)
+                #q = quaternion_from_euler(0, 0, 0) 
+                t.transform.rotation.x = 0.0#q[0]
+                t.transform.rotation.y = 0.0#q[1]
+                t.transform.rotation.z = 0.0#q[2]
+                t.transform.rotation.w = 1.0#q[3]
 
                 self.tf_broadcaster.sendTransform(t)
                 print(".")
