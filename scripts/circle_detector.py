@@ -17,6 +17,7 @@ import geometry_msgs.msg
 
 from tf2_ros import TransformBroadcaster
 from geometry_msgs.msg import TransformStamped
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 
 class CircleDetector(Node):
 
@@ -31,12 +32,28 @@ class CircleDetector(Node):
         # Initialize the transform broadcaster
         self.tf_broadcaster = TransformBroadcaster(self)
 
-        self.subPointcloud = self.create_subscription(
-            PointCloud2,
-            '/stereo/points',
-            self.pointcloud_callback,
-            10)
-        self.subPointcloud  # prevent unused variable warning		
+        qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=1
+        )
+
+        if 0:
+            self.subPointcloud = self.create_subscription(
+                PointCloud2,
+                '/stereo/points',
+                self.pointcloud_callback,
+                10)
+            self.subPointcloud  # prevent unused variable warning		
+        else:
+            self.subPointcloud = self.create_subscription(
+                PointCloud2,
+                '/stereo/points',
+                callback = self.pointcloud_callback,
+                qos_profile=qos_profile
+            )
+
+
 
         self.subImage = self.create_subscription(
             Image,
@@ -51,11 +68,13 @@ class CircleDetector(Node):
     def pointcloud_callback(self, point_cloud_msg):
         #rospy.loginfo("PCL Callback")
 
-        pc_list = ros2_numpy.point_cloud2.pointcloud2_to_xyz_array(point_cloud_msg, remove_nans = False )
+        #pc_list = ros2_numpy.point_cloud2.pointcloud2_to_xyz_array(point_cloud_msg, remove_nans = False )
+        pc_list = ros2_numpy.point_cloud2.point_cloud2_to_array(point_cloud_msg)
 
-        print('y')
+        #print(pc_list)
+
         if self.detected_circles is not None:
-            print("x")
+
 
             # Convert the circle parameters a, b and r to integers.
             detected_circles = np.uint16(np.around(self.detected_circles))
@@ -77,7 +96,11 @@ class CircleDetector(Node):
                 for it_x in range(x1, x2):
                     for it_y in range(y1, y2):
                         #curr_pos = pc_list[it_y][it_x] # hoe zit dit?
-                        curr_pos = pc_list[it_x][it_y] # hoe zit dit?
+                        
+                        xyz_data = pc_list["xyz"]
+                        print(len(xyz_data))
+                        print(xyz_data)
+                        curr_pos = xyz_data[it_y][it_x] # hoe zit dit?
                         if curr_pos[0] is not None:
                             if(curr_pos[2] < min_z):
                                 min_x = curr_pos[0]
@@ -111,7 +134,6 @@ class CircleDetector(Node):
 
     def image_callback(self, image_msg):
 
-        print("hoi")
         cv_image = self.bridge.imgmsg_to_cv2(image_msg, desired_encoding='passthrough')
 
         # Convert to grayscale.
@@ -122,7 +144,7 @@ class CircleDetector(Node):
 
         # Apply Hough transform on the blurred image.
         detected_circles = cv2.HoughCircles(gray_blurred,
-        cv2.HOUGH_GRADIENT, 1, 100, param1 = 50,
+        cv2.HOUGH_GRADIENT, 1, 100, param1 = 100,
         param2 = 30, minRadius = 50, maxRadius = 400)
 
         #cv::HoughCircles( gray_image, circles, CV_HOUGH_GRADIENT, DEF_HOUGH_ACCUM_RESOLUTION, DEF_MIN_CIRCLE_DIST, DEF_CANNY_EDGE_TH, DEF_HOUGH_ACCUM_TH, DEF_MIN_RADIUS, DEF_MAX_RADIUS );
