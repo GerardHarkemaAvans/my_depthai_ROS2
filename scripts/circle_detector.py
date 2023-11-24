@@ -82,7 +82,9 @@ class CircleDetector(Node):
 
             i = 1
             for pt in detected_circles[0, :]:
-                y, x, r = pt[0], pt[1], pt[2] # This is magic, x & y zijn omgedraaid!
+                x, y, r = pt[0], pt[1], pt[2] 
+                print(x)
+                print(y)
 
                 x1 = x - r
                 y1 = y - r
@@ -92,22 +94,18 @@ class CircleDetector(Node):
                     continue
                 if((y1 >= point_cloud_msg.height) or (y2 >= point_cloud_msg.height)):
                     continue
+                      
+                xyz_data = pc_list["xyz"]
+                curr_pos = xyz_data[point_cloud_msg.width * y + x]
+                #curr_pos = xyz_data[point_cloud_msg.height * x + y]
+                if curr_pos[0] is not None:
+                    #if(curr_pos[2] < min_z):
+                    min_x = curr_pos[0]
+                    min_y = curr_pos[1]
+                    min_z = curr_pos[2]
 
-                min_x, min_y, min_z = 0,0,9000
-                for it_x in range(x1, x2):
-                    for it_y in range(y1, y2):
-                        #curr_pos = pc_list[it_y][it_x] # hoe zit dit?
-                        
-                        xyz_data = pc_list["xyz"]
-                        #print(len(xyz_data))
-                        #print(xyz_data)
-                        #curr_pos = xyz_data[it_y][it_x] # hoe zit dit?
-                        curr_pos = xyz_data[point_cloud_msg.width * it_y + it_x]
-                        if curr_pos[0] is not None:
-                            if(curr_pos[2] < min_z):
-                                min_x = curr_pos[0]
-                                min_y = curr_pos[1]
-                                min_z = curr_pos[2]
+                if np.isnan(min_x) or np.isnan(min_y) or np.isnan(min_z):
+                    continue
 
                 curr_pos = min_x, min_y, min_z
                 print(curr_pos)
@@ -118,7 +116,7 @@ class CircleDetector(Node):
                 i=i+1
 
                 t.header.stamp = self.get_clock().now().to_msg()
-                t.header.frame_id = 'oak_model_origin' # nog even de juiste selecteren!!!!!
+                t.header.frame_id = 'oak_rgb_camera_optical_frame'
                 t.child_frame_id = child_frame_id
                 t.transform.translation.x = float(min_x)
                 t.transform.translation.y = float(min_y)

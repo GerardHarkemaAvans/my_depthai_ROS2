@@ -84,7 +84,7 @@ class Publisch_TF(Node):
             # Read message content and assign it to
             # corresponding tf variables
             t.header.stamp = self.get_clock().now().to_msg()
-            t.header.frame_id = 'oak_model_origin' # nog even de juiste selecteren!!!!!
+            t.header.frame_id = 'oak_rgb_camera_optical_frame' 
             t.child_frame_id = child_frame_id#self.labels[int(detectionID)]
 
             # Turtle only exists in 2D, thus we get x and y translation
