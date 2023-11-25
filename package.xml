@@ -31,6 +31,7 @@
   <depend>vision_msgs</depend>
   <depend>foxglove_msgs</depend>
   <depend>rviz_imu_plugin</depend>
+  <depend>visualization_msgs</depend>
 
   <depend>rclpy</depend>
 

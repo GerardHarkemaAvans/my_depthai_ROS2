@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
+from rclpy.duration import Duration
 
 from std_msgs.msg import String
 from depthai_ros_msgs.msg import SpatialDetectionArray
 
+from visualization_msgs.msg import Marker
 
 from geometry_msgs.msg import Point
 from std_msgs.msg import ColorRGBA, String
@@ -59,6 +61,7 @@ class Publisch_TF(Node):
 
         # Initialize the transform broadcaster
         self.tf_broadcaster = TransformBroadcaster(self)
+        self.pubTextMarker = self.create_publisher(Marker, 'color/ObjectText', 10)
 
     def spatial_dections_callback(self, spatial_detection_array_msg):
         for label in self.labels:
@@ -104,7 +107,17 @@ class Publisch_TF(Node):
             # Send the transformation
             self.tf_broadcaster.sendTransform(t)
 
-   
+            text_marker = Marker()  # Text
+            text_marker.header.stamp = self.get_clock().now().to_msg()
+            text_marker.header.frame_id = child_frame_id
+            text_marker.type = Marker.TEXT_VIEW_FACING
+            text_marker.pose.position.y = -0.01
+            text_marker.pose.position.x = 0.01
+            text_marker.scale.x = text_marker.scale.y = text_marker.scale.z = 0.1#0.06
+            text_marker.color.r = text_marker.color.g = text_marker.color.b = text_marker.color.a = 1.0
+            text_marker.text = child_frame_id
+            text_marker.lifetime = Duration(seconds=10.0).to_msg()
+            self.pubTextMarker.publish(text_marker)   
 
 def main(args=None):
     rclpy.init(args=args)

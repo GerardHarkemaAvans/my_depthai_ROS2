@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
-
+from rclpy.duration import Duration
 from sensor_msgs.msg import Image
 
 from sensor_msgs.msg import PointCloud2
 import numpy as np
+
+from visualization_msgs.msg import Marker
 
 import ros2_numpy
 
@@ -64,6 +66,7 @@ class CircleDetector(Node):
         self.subImage  # prevent unused variable warning
 
         self.pubDetectedCircleImage = self.create_publisher(Image, 'color/detected_circles', 10)
+        self.pubTextMarker = self.create_publisher(Marker, 'color/ObjectText', 10)
     pass
     
     def pointcloud_callback(self, point_cloud_msg):
@@ -128,7 +131,19 @@ class CircleDetector(Node):
                 t.transform.rotation.w = 1.0#q[3]
 
                 self.tf_broadcaster.sendTransform(t)
-                print(".")
+
+                text_marker = Marker()  # Text
+                text_marker.header.stamp = self.get_clock().now().to_msg()
+                text_marker.header.frame_id = child_frame_id
+                text_marker.type = Marker.TEXT_VIEW_FACING
+                text_marker.pose.position.y = -0.01
+                text_marker.pose.position.x = 0.01
+                text_marker.scale.x = text_marker.scale.y = text_marker.scale.z = 0.1#0.06
+                text_marker.color.r = text_marker.color.g = text_marker.color.b = text_marker.color.a = 1.0
+                text_marker.text = child_frame_id
+                text_marker.lifetime = Duration(seconds=10.0).to_msg()
+                self.pubTextMarker.publish(text_marker)
+
 
         pass
 
