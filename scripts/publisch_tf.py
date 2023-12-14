@@ -111,8 +111,10 @@ class Publisch_TF(Node):
             text_marker.header.stamp = self.get_clock().now().to_msg()
             text_marker.header.frame_id = child_frame_id
             text_marker.type = Marker.TEXT_VIEW_FACING
-            text_marker.pose.position.y = -0.01
-            text_marker.pose.position.x = 0.01
+            text_marker.pose.position.y = 0.00
+            text_marker.pose.position.x = 0.00
+            text_marker.pose.position.z = -0.03
+
             text_marker.scale.x = text_marker.scale.y = text_marker.scale.z = 0.1#0.06
             text_marker.color.r = text_marker.color.g = text_marker.color.b = text_marker.color.a = 1.0
             text_marker.text = child_frame_id
