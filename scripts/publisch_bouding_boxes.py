@@ -13,6 +13,7 @@ import cv2
 from cv_bridge import CvBridge
 
 import json
+import random
 
 class PublischBoundingBoxes(Node):
 
@@ -30,20 +31,21 @@ class PublischBoundingBoxes(Node):
         print(nnConfig)
         nnConfigPath = path + '/' + nnConfig
         print(nnConfigPath)
-        # Opening JSON file
-        f = open(nnConfigPath)
-        
-        # returns JSON object as 
-        # a dictionary
-        data = json.load(f)
-       
-        # Closing file
-        f.close()
 
-        #print(data)
-        mappings = data['mappings']
-        self.labels = mappings['labels']
-        #print(labels)
+        self.colors = []
+        colors = []
+        with open(nnConfigPath, 'r') as f:
+            self.model_objects = json.loads(f.read())
+            try:
+                self.class_names = self.model_objects["class_names"]
+                colors = self.model_objects["colors"]
+                for color in colors:
+                    self.colors.append(colors[color])
+            except:
+                self.class_names = self.model_objects["mappings"]["labels"]
+                for class_name in self.class_names:
+                    self.colors.append("#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)]))
+
 
         #self.print(labels[0])
 
@@ -69,34 +71,44 @@ class PublischBoundingBoxes(Node):
         if(self.image is not None):
             bouding_box_image = self.image
             for detection in spatial_detection_array_msg.detections:
-                bbox = detection.bbox
 
                 detectionID = None
                 score = -1.0
-                label = None
                 for result in detection.results:
                     if result.score > score:
                         detectionID = result.class_id
                         score = result.score
 
-
                 #detectionID = detection.results[0].class_id
                 #score = detection.results[0].score
 
                 if(detectionID is not None):
-                    position = detection.position
-                    label = f'{self.labels[int(detectionID)]}, x: {round(position.x,3)}, y: {round(position.y,3)}, z: {round(position.z,3)}'
-                    #print(label)
+                    x1 = detection.bbox.center.position.x - (detection.bbox.size_x / 2)
+                    y1 = detection.bbox.center.position.y - (detection.bbox.size_y / 2)
+                    x2 = detection.bbox.center.position.x + (detection.bbox.size_x / 2)
+                    y2 = detection.bbox.center.position.y + (detection.bbox.size_y / 2)
+                    #spatial detections
+                    x = detection.position.x
+                    y = detection.position.y
+                    z = detection.position.z
 
-                    upper_left = (int(bbox.center.position.x - bbox.size_x/2),int(bbox.center.position.y - bbox.size_y/2))
-                    lower_right = (int(bbox.center.position.x + bbox.size_x/2),int(bbox.center.position.y + bbox.size_y/2))
-                    width = 1
-                    cv2.rectangle(bouding_box_image, upper_left, lower_right, (0,0,255), width)
 
-                    label_pos = (int(bbox.center.position.x - bbox.size_x/2),int(bbox.center.position.y + bbox.size_y/2 + 10))
-                    
-                    cv2.putText(bouding_box_image, label, label_pos, cv2.FONT_HERSHEY_SIMPLEX,  0.5, (255, 0, 0), width, cv2.LINE_AA) 
+                    class_index = int(detection.results[0].class_id)
+                    score = detection.results[0].score
+                    class_color = self.colors[int(class_index)].strip("#")
+                    class_color = tuple(int(class_color[i:i + 2], 16) for i in (0, 2, 4))
 
+                    cv2.rectangle(self.image, (int(x1), int(y1)), (int(x2), int(y2)), class_color, 2)
+
+                    text = f'{self.class_names[class_index]}, : {round(score * 100,3)}'
+                    #print(text)
+                    image = cv2.putText(self.image, text, (int(x1)+5, int(y2)-5), cv2.FONT_HERSHEY_SIMPLEX, 1, class_color, 2, cv2.LINE_AA)
+                    text = 'x: %.3f m' % (x)
+                    image = cv2.putText(self.image, text, (int(x1)+5, int(y2)+20), cv2.FONT_HERSHEY_SIMPLEX, 1, class_color, 2, cv2.LINE_AA)
+                    text = 'y: %.3f m' % (y)
+                    image = cv2.putText(self.image, text, (int(x1)+5, int(y2)+45), cv2.FONT_HERSHEY_SIMPLEX, 1, class_color, 2, cv2.LINE_AA)
+                    text = 'z: %.3f m' % (z)
+                    image = cv2.putText(self.image, text, (int(x1)+5, int(y2)+70), cv2.FONT_HERSHEY_SIMPLEX, 1, class_color, 2, cv2.LINE_AA)
                     number_of_bounding_boxes = number_of_bounding_boxes + 1
 
             if number_of_bounding_boxes:
