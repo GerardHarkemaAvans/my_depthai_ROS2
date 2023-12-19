@@ -46,7 +46,7 @@ def generate_launch_description():
     lrcheck             = LaunchConfiguration('lrcheck', default = True)
     extended            = LaunchConfiguration('extended', default = False)
     LRchecktresh        = LaunchConfiguration('LRchecktresh',      default = 5)
-    monoResolution      = LaunchConfiguration('monoResolution',  default = '720p')
+    monoResolution      = LaunchConfiguration('monoResolution',  default = '400p')
     publish_grayscale_image  = LaunchConfiguration('publish_grayscale_image', default = True)
     publish_depth_image      = LaunchConfiguration('publish_depth_image', default = True)
 
