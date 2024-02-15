@@ -93,7 +93,7 @@ class Publisch_TF(Node):
             # Turtle only exists in 2D, thus we get x and y translation
             # coordinates from the message and set the z coordinate to 0
             t.transform.translation.x = position.x
-            t.transform.translation.y = position.y
+            t.transform.translation.y = -position.y # GAH Dit snap ik nog niet
             t.transform.translation.z = position.z
 
             # For the same reason, turtle can only rotate around one axis

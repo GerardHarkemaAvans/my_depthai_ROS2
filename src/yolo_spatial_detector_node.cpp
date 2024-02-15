@@ -355,7 +355,7 @@ int main(int argc, char** argv) {
         rightPublish->addPublisherCallback();
     }
 
-    dai::rosBridge::ImageConverter color_converter(tfPrefix + "_color_camera_optical_frame", true);
+    dai::rosBridge::ImageConverter color_converter(tfPrefix + "_rgb_camera_optical_frame", true);
     auto colorCameraInfo = color_converter.calibrationToCameraInfo(calibrationHandler, dai::CameraBoardSocket::CAM_C,-1,-1);//416, 416);
     dai::rosBridge::BridgePublisher<sensor_msgs::msg::Image, dai::ImgFrame> colorPublish(
         colorQueue,
