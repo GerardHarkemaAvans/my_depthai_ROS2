@@ -54,7 +54,7 @@ class Publisch_TF(Node):
 
         self.subSpatialDetection = self.create_subscription(
             SpatialDetectionArray,
-            'color/yolov4_Spatial_detections',
+            'color/yolov4_spatial_detections',
             self.spatial_dections_callback,
             10)
         self.subSpatialDetection  # prevent unused variable warning

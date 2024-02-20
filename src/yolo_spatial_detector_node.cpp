@@ -356,7 +356,8 @@ int main(int argc, char** argv) {
     }
 
     dai::rosBridge::ImageConverter color_converter(tfPrefix + "_rgb_camera_optical_frame", true);
-    auto colorCameraInfo = color_converter.calibrationToCameraInfo(calibrationHandler, dai::CameraBoardSocket::CAM_C,-1,-1);//416, 416);
+//    auto colorCameraInfo = color_converter.calibrationToCameraInfo(calibrationHandler, dai::CameraBoardSocket::CAM_C,-1,-1);//416, 416);
+    auto colorCameraInfo = color_converter.calibrationToCameraInfo(calibrationHandler, dai::CameraBoardSocket::CAM_C, -1, -1);
     dai::rosBridge::BridgePublisher<sensor_msgs::msg::Image, dai::ImgFrame> colorPublish(
         colorQueue,
         node,
@@ -377,8 +378,10 @@ int main(int argc, char** argv) {
         "color");
     colorDetectionsPublish.addPublisherCallback();
 
-    auto depthconverter = rightconverter;//color_converter;
-    auto depthCameraInfo = rightCameraInfo;//depthconverter.calibrationToCameraInfo(calibrationHandler, dai::CameraBoardSocket::CAM_C, monoWidth, monoHeight);
+//    auto depthconverter = rightconverter;//color_converter;
+    auto depthconverter = color_converter;
+//    auto depthCameraInfo = rightCameraInfo;
+    auto depthCameraInfo =  depthconverter.calibrationToCameraInfo(calibrationHandler, dai::CameraBoardSocket::CAM_C, -1,-1);//416, 416);
     dai::rosBridge::BridgePublisher<sensor_msgs::msg::Image, dai::ImgFrame> *depthPublish;
     if(publish_depth_image){
         depthPublish = new dai::rosBridge::BridgePublisher<sensor_msgs::msg::Image, dai::ImgFrame>(
@@ -400,7 +403,7 @@ int main(int argc, char** argv) {
     dai::rosBridge::BridgePublisher<depthai_ros_msgs::msg::SpatialDetectionArray, dai::SpatialImgDetections> detectionPublish(
         detectionQueue,
         node,
-        std::string("color/yolov4_Spatial_detections"),
+        std::string("color/yolov4_spatial_detections"),
         std::bind(&dai::rosBridge::SpatialDetectionConverter::toRosMsg, &detConverter, std::placeholders::_1, std::placeholders::_2),
         30);
     detectionPublish.addPublisherCallback();

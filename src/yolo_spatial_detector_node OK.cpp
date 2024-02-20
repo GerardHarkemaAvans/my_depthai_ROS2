@@ -378,7 +378,7 @@ int main(int argc, char** argv) {
     dai::rosBridge::BridgePublisher<depthai_ros_msgs::msg::SpatialDetectionArray, dai::SpatialImgDetections> detectionPublish(
         detectionQueue,
         node,
-        std::string("color/yolov4_Spatial_detections"),
+        std::string("color/yolov4_spatial_detections"),
         std::bind(&dai::rosBridge::SpatialDetectionConverterEx::toRosMsg, &detConverter, std::placeholders::_1, std::placeholders::_2),
         30);
     detectionPublish.addPublisherCallback();
